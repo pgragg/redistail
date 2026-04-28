@@ -9,3 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 - Initial project scaffold (`pyproject.toml`, package layout, CLI entrypoint stub).
+- CLI flags: `[URL]`, `--db`, `--pattern`, `--exclude`, `--ops`, `--json`, `--no-color`, `--no-time`, `--verbose`, `--max-width`, `--redact`, `--with-values`, `--monitor`, `--log-file`, `--expand-all`, `--collapse-threshold`, `--config`, `--version`.
+- `$REDIS_URL` env fallback and `NO_COLOR` env var support.
+- Startup connection validation (PING + INFO) with friendly errors on bad / unreachable URLs (exit 2).

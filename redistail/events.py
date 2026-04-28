@@ -9,9 +9,9 @@ from dataclasses import dataclass
 class KeyEvent:
     """A single key-event observation."""
 
-    op: str            # e.g. "set", "del", "expire", "expired", "hset"
+    op: str  # e.g. "set", "del", "expire", "expired", "hset"
     db: int
     key: str
-    ts: float          # epoch seconds, client-side
+    ts: float  # epoch seconds, client-side
     value: object | None = None  # populated when --with-values is set
-    channel: str | None = None   # raw pub/sub channel, for --verbose
+    channel: str | None = None  # raw pub/sub channel, for --verbose
