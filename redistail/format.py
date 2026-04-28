@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import fnmatch
 import json
 import re
 import sys
@@ -15,6 +14,7 @@ from rich.console import Console
 from rich.text import Text
 
 from redistail.events import KeyEvent
+from redistail.filters import should_redact
 from redistail.options import Settings
 
 # ---------------------------------------------------------------------------
@@ -121,10 +121,6 @@ def _truncate(s: str, max_width: int) -> str:
     if max_width and len(s) > max_width:
         return s[: max_width - 1] + "\u2026"
     return s
-
-
-def _key_matches_redact(key: str, redact_globs: tuple[str, ...]) -> bool:
-    return any(fnmatch.fnmatchcase(key, g) for g in redact_globs)
 
 
 def render_value(value: object, value_type: str | None, *, max_width: int, redacted: bool) -> str:
@@ -288,7 +284,7 @@ class Renderer:
             line.append(" ".join(extra_bits), style="dim")
 
         if event.value is not None:
-            redacted = _key_matches_redact(event.key, s.redact)
+            redacted = should_redact(event.key, s.redact)
             rendered = render_value(
                 event.value,
                 event.value_type,
@@ -323,7 +319,7 @@ class Renderer:
             payload["channel"] = event.channel
             payload["source"] = event.source
         if event.value is not None:
-            redacted = _key_matches_redact(event.key, s.redact)
+            redacted = should_redact(event.key, s.redact)
             payload["value"] = (
                 "***" if redacted else _json_safe_value(event.value, event.value_type)
             )

@@ -36,6 +36,7 @@ from redis.exceptions import RedisError
 
 from redistail.connection import make_client
 from redistail.events import KeyEvent
+from redistail.filters import event_allowed
 
 if TYPE_CHECKING:
     from redistail.options import Settings
@@ -296,6 +297,19 @@ def stream_keyspace_events(
             db, event_name = parsed
             key = _to_text(data)
 
+            # Filter early so we don't pay the --with-values round-trip on
+            # events the caller is going to drop anyway.
+            probe = KeyEvent(
+                op=event_name,
+                db=db,
+                key=key,
+                ts=datetime.now(tz=UTC),
+                channel=channel,
+                source="keyspace",
+            )
+            if not event_allowed(probe, settings):
+                continue
+
             value: Any | None = None
             value_type: str | None = None
             if value_client is not None and event_name not in _VALUELESS_OPS:
@@ -305,7 +319,7 @@ def stream_keyspace_events(
                 op=event_name,
                 db=db,
                 key=key,
-                ts=datetime.now(tz=UTC),
+                ts=probe.ts,
                 value=value,
                 value_type=value_type,
                 channel=channel,
@@ -348,6 +362,8 @@ def stream_monitor_events(
                     continue
                 evt = monitor_line_to_event(line)
                 if evt is None:
+                    continue
+                if not event_allowed(evt, settings):
                     continue
                 yield evt
                 yielded += 1
