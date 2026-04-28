@@ -37,7 +37,7 @@ was built. Keep the project compilable and `pytest` green at every step.
 - [x] 004 Keyspace notification stream (`subscriber.py`, `events.py`) — biggest ticket
 - [x] 005 Event formatting & colors (`format.py`)
 - [x] 006 Filters & redaction (`filters.py`)
-- [ ] 007 High-frequency burst collapsing (`collapse.py`)
+- [x] 007 High-frequency burst collapsing (`collapse.py`)
 - [ ] 008 Resume mode (best-effort) — implement OR mark canceled with rationale
 - [ ] 009 Config file support (`config.py`)
 - [ ] 010 Tests & CI — fill out unit tests for everything above + integration test using `fakeredis` / `testcontainers`
@@ -64,6 +64,7 @@ was built. Keep the project compilable and `pytest` green at every step.
 - 004: 71 unit tests passing, ruff + format clean. KeyEvent dataclass + subscriber (keyspace + MONITOR paths). Verified end-to-end against a real `redis:7` Docker container on port 56379: SET/HSET/DEL captured with `--with-values` returning correctly typed values (str → bytes, hash → dict), MONITOR mode captures writes and drops GETs, TTL `expired` event fires on the keyspace path.
 - 005: 100 unit tests passing, ruff + format clean. Renderer with op-color categorization, type-aware value formatting (string/hash/list/set/zset/stream), key-glob redaction, `--verbose`/`--no-color`/`--no-time` honored, `--log-file` tees ANSI-stripped, `--json` emits compact objects. Verified live against redis:7 — hash rendered as `{name: bob, age: 30}`, `token:*` redacted to `***`.
 - 006: 122 unit tests passing, ruff + format clean. Pure filter predicates in `filters.py` (`db_allowed`, `key_allowed`, `op_allowed`, `should_redact`, composite `event_allowed`). Wired into subscriber **before** `--with-values` round-trip. Verified live: with `--pattern user:* --ops set,del`, of 7 mixed writes only the matching 4 surfaced and only those got values fetched.
+- 007: 135 unit tests passing, ruff + format clean. `Collapser` with per-(op,prefix) 1-second windows, inline notice at overshoot, summary on window-roll/sweep/flush. Synthetic events bypass. Verified live with threshold=5: 20 SETs → 5 pass-throughs + 1 notice + 1 summary `20 events (collapsed)`.
 
 ## Completion criteria
 - All checklist items 002–011 are checked.

@@ -8,6 +8,7 @@ from pathlib import Path
 import typer
 
 from redistail import __version__
+from redistail.collapse import Collapser
 from redistail.connection import ConnectionError_, validate_connection
 from redistail.format import Renderer
 from redistail.options import (
@@ -182,10 +183,16 @@ def run(
     )
 
     renderer = Renderer.from_settings(settings)
+    collapser = Collapser(settings=settings)
     try:
         for event in stream_events(settings):
-            renderer.emit(event)
+            for shaped in collapser.process(event):
+                renderer.emit(shaped)
+        for shaped in collapser.flush():
+            renderer.emit(shaped)
     except KeyboardInterrupt:
+        for shaped in collapser.flush():
+            renderer.emit(shaped)
         typer.secho(
             "\nredistail: stopped (Ctrl-C). cleanup complete.",
             fg=typer.colors.CYAN,
