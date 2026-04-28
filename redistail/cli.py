@@ -9,6 +9,7 @@ import typer
 
 from redistail import __version__
 from redistail.connection import ConnectionError_, validate_connection
+from redistail.format import Renderer
 from redistail.options import (
     DEFAULT_OPS,
     Settings,
@@ -180,17 +181,10 @@ def run(
         err=True,
     )
 
+    renderer = Renderer.from_settings(settings)
     try:
         for event in stream_events(settings):
-            # Filtering / formatting land in tickets 005-007. For now: show a
-            # one-line raw representation per event so the stream is observable
-            # end-to-end.
-            line = (
-                f"{event.ts.strftime('%H:%M:%S')}  {event.op.upper():8} db={event.db} {event.key}"
-            )
-            if event.value is not None and not settings.json_output:
-                line += f"  value={event.value!r}"
-            typer.echo(line)
+            renderer.emit(event)
     except KeyboardInterrupt:
         typer.secho(
             "\nredistail: stopped (Ctrl-C). cleanup complete.",
@@ -198,6 +192,8 @@ def run(
             err=True,
         )
         raise typer.Exit(0) from None
+    finally:
+        renderer.close()
 
 
 def main() -> None:
