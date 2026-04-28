@@ -18,7 +18,9 @@ runner = CliRunner()
 
 
 def test_help_lists_every_flag() -> None:
-    result = runner.invoke(app, ["--help"])
+    # Force a wide terminal so rich-typer doesn't truncate long flag names
+    # like --collapse-threshold to --collapse-thresh… in the rendered help.
+    result = runner.invoke(app, ["--help"], env={"COLUMNS": "200", "TERMINAL_WIDTH": "200"})
     assert result.exit_code == 0
     out = result.stdout
     for flag in [
@@ -33,6 +35,7 @@ def test_help_lists_every_flag() -> None:
         "--max-width",
         "--redact",
         "--with-values",
+        "--no-values",
         "--monitor",
         "--log-file",
         "--expand-all",
@@ -83,7 +86,16 @@ def test_version_flag() -> None:
 
 
 def test_parse_ops_default() -> None:
-    assert parse_ops(",".join(DEFAULT_OPS)) == DEFAULT_OPS
+    # DEFAULT_OPS is now the empty tuple sentinel meaning "show all".
+    assert DEFAULT_OPS == ()
+    assert parse_ops("") == DEFAULT_OPS
+
+
+def test_parse_ops_all_sentinel() -> None:
+    # "all" and "*" both collapse to the empty-tuple "show everything" sentinel.
+    assert parse_ops("all") == ()
+    assert parse_ops("*") == ()
+    assert parse_ops("set,all,del") == ()
 
 
 def test_parse_ops_normalizes_case() -> None:

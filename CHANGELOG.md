@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- **Default `--ops` is now `all`** (empty allowlist = show every event type). Previously defaulted to `set,del,expire,expired`, which silently hid hash/list/set/zset/stream/counter writes. Pass a comma-separated list to filter, or use `--ops all` / `--ops '*'` explicitly.
+- **`--with-values` is now on by default.** Use `--no-values` to opt out of the per-event value fetch round-trip. Behavior matches user expectation when smoketesting against a real app — you see what was written, not just that something was written.
+
+### Added
+- `docs/smoketest.md` + `scripts/smoketest-traffic.sh` — repeatable end-to-end smoketest against a throwaway Redis container, exercising every data type plus TTL expiry and rename.
+
 ### Added
 - Initial project scaffold (`pyproject.toml`, package layout, CLI entrypoint stub).
 - CLI flags: `[URL]`, `--db`, `--pattern`, `--exclude`, `--ops`, `--json`, `--no-color`, `--no-time`, `--verbose`, `--max-width`, `--redact`, `--with-values`, `--monitor`, `--log-file`, `--expand-all`, `--collapse-threshold`, `--config`, `--version`.

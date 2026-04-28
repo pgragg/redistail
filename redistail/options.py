@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 # Default ops shown when --ops isn't specified.
-DEFAULT_OPS: tuple[str, ...] = ("set", "del", "expire", "expired")
+# Empty tuple = "show every op" (see filters.op_allowed).
+DEFAULT_OPS: tuple[str, ...] = ()
 
 # Well-known Redis keyspace event names. Modules / future Redis versions may
 # produce events outside this set, so we still allow any lowercase string;
@@ -114,7 +115,7 @@ class Settings:
     redact: tuple[str, ...] = ()
 
     # Modes
-    with_values: bool = False
+    with_values: bool = True
     monitor: bool = False
 
     # Tee
@@ -158,6 +159,9 @@ def parse_ops(raw: str) -> tuple[str, ...]:
     out: list[str] = []
     for p in parts:
         lo = p.lower()
+        # 'all' / '*' are explicit sentinels for "show every op".
+        if lo in ("all", "*"):
+            return ()
         if lo not in seen:
             seen.add(lo)
             out.append(lo)

@@ -61,9 +61,12 @@ def run(
         help="Comma-separated key exclude list (globs allowed).",
     ),
     ops: str = typer.Option(
-        ",".join(DEFAULT_OPS),
+        "all",
         "--ops",
-        help="Operations to show, e.g. set,del,expire,expired,hset.",
+        help=(
+            "Operations to show. Default 'all' shows every event type. "
+            "Pass a comma-separated list to filter, e.g. 'set,del,expire,expired,hset'."
+        ),
     ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit one JSON object per change instead of colored text."
@@ -84,9 +87,12 @@ def run(
         help="Comma-separated key globs whose values get masked as '***'.",
     ),
     with_values: bool = typer.Option(
-        False,
-        "--with-values",
-        help="Fetch the changed key's current value (extra round-trip per event).",
+        True,
+        "--with-values/--no-values",
+        help=(
+            "Fetch the changed key's current value (extra round-trip per event). "
+            "Enabled by default; pass --no-values to skip the fetch."
+        ),
     ),
     monitor: bool = typer.Option(
         False,
