@@ -17,6 +17,7 @@ from redistail.options import (
     parse_ops,
 )
 from redistail.preflight import PreflightError, run_preflight
+from redistail.subscriber import stream_events
 
 app = typer.Typer(
     name="redistail",
@@ -167,14 +168,36 @@ def run(
         typer.secho(str(e), fg=typer.colors.YELLOW, err=True)
         raise typer.Exit(3) from e
 
+    mode = (
+        "MONITOR"
+        if settings.monitor
+        else f"keyspace notifications (db={','.join(map(str, settings.dbs))})"
+    )
     typer.secho(
         f"redistail → redis {info.server_version} ({info.server_mode}, role={info.role}, "
-        f"user={info.current_user}). Subscribe / stream not implemented yet.",
+        f"user={info.current_user}). Source: {mode}. Ctrl-C to stop.",
         fg=typer.colors.CYAN,
         err=True,
     )
-    # Streaming lands in ticket 004.
-    raise typer.Exit(0)
+
+    try:
+        for event in stream_events(settings):
+            # Filtering / formatting land in tickets 005-007. For now: show a
+            # one-line raw representation per event so the stream is observable
+            # end-to-end.
+            line = (
+                f"{event.ts.strftime('%H:%M:%S')}  {event.op.upper():8} db={event.db} {event.key}"
+            )
+            if event.value is not None and not settings.json_output:
+                line += f"  value={event.value!r}"
+            typer.echo(line)
+    except KeyboardInterrupt:
+        typer.secho(
+            "\nredistail: stopped (Ctrl-C). cleanup complete.",
+            fg=typer.colors.CYAN,
+            err=True,
+        )
+        raise typer.Exit(0) from None
 
 
 def main() -> None:
