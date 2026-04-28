@@ -16,6 +16,7 @@ from redistail.options import (
     parse_db_list,
     parse_ops,
 )
+from redistail.preflight import PreflightError, run_preflight
 
 app = typer.Typer(
     name="redistail",
@@ -158,6 +159,13 @@ def run(
     except ConnectionError_ as e:
         typer.secho(f"error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(2) from e
+
+    try:
+        run_preflight(settings.url, monitor_mode=settings.monitor)
+    except PreflightError as e:
+        typer.secho("preflight check failed:\n", fg=typer.colors.RED, err=True, bold=True)
+        typer.secho(str(e), fg=typer.colors.YELLOW, err=True)
+        raise typer.Exit(3) from e
 
     typer.secho(
         f"redistail → redis {info.server_version} ({info.server_mode}, role={info.role}, "

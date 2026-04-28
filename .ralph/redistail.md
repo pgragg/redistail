@@ -33,7 +33,7 @@ was built. Keep the project compilable and `pytest` green at every step.
 ## Checklist (one-to-one with project_management/)
 - [x] 001 Project scaffold (already done)
 - [x] 002 Connection handling & CLI args (`redistail/options.py`, `cli.py`, `connection.py`)
-- [ ] 003 Preflight: `notify-keyspace-events` & ACL check (`preflight.py`)
+- [x] 003 Preflight: `notify-keyspace-events` & ACL check (`preflight.py`)
 - [ ] 004 Keyspace notification stream (`subscriber.py`, `events.py`) — biggest ticket
 - [ ] 005 Event formatting & colors (`format.py`)
 - [ ] 006 Filters & redaction (`filters.py`)
@@ -60,6 +60,7 @@ was built. Keep the project compilable and `pytest` green at every step.
 
 - 001: commit `1132783`, 3 smoke tests passing, scaffold confirmed via `redistail --help`.
 - 002: 26 unit tests passing, ruff + format clean. Settings dataclass + URL/db/op parsers + connection PING validation. All flags from spec land in `--help`.
+- 003: 46 unit tests passing, ruff + format clean. notify-keyspace-events flag parsing (K/E required), ACL WHOAMI + GETUSER for psubscribe/monitor permission, 7 managed-provider hostname matchers, friendly fix-up text. CLI wires preflight, exit 3 on failure.
 
 ## Completion criteria
 - All checklist items 002–011 are checked.
