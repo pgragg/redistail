@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from typer.main import get_command
 from typer.testing import CliRunner
 
 from redistail.cli import app
@@ -17,12 +18,17 @@ from redistail.options import (
 runner = CliRunner()
 
 
-def test_help_lists_every_flag() -> None:
-    # Force a wide terminal so rich-typer doesn't truncate long flag names
-    # like --collapse-threshold to --collapse-thresh… in the rendered help.
-    result = runner.invoke(app, ["--help"], env={"COLUMNS": "200", "TERMINAL_WIDTH": "200"})
-    assert result.exit_code == 0
-    out = result.stdout
+def test_cli_exposes_every_flag() -> None:
+    # Verify the CLI declares every documented flag. We introspect the
+    # underlying Click command rather than scraping the rendered --help text:
+    # rich-typer wraps and styles help based on the detected terminal width,
+    # which is non-deterministic when output is captured (non-TTY) under CI and
+    # made the old text-scraping assertion flaky (e.g. --db wrapped off-panel).
+    command = get_command(app)
+    declared: set[str] = set()
+    for param in command.params:
+        declared.update(param.opts)
+        declared.update(param.secondary_opts)
     for flag in [
         "--db",
         "--pattern",
@@ -43,7 +49,7 @@ def test_help_lists_every_flag() -> None:
         "--config",
         "--version",
     ]:
-        assert flag in out, f"missing {flag} in --help"
+        assert flag in declared, f"missing {flag} in CLI options"
 
 
 def test_missing_url_exits_2(monkeypatch: pytest.MonkeyPatch) -> None:
