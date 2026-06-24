@@ -3,12 +3,30 @@
 **Tail Redis key changes (SET / DEL / EXPIRE / HSET / …) with color in your terminal,
 via keyspace notifications.** No Lua scripts. No `KEYS *`. Read-only on your data.
 
+![redistail tailing live Redis key changes in color](docs/demo.svg)
+
+<details>
+<summary>Plain-text version (for screen readers / raw view)</summary>
+
 ```text
-14:02:11  SET     session:abc123        "ttl=900, size=412"
-14:02:11  EXPIRE  session:abc123        ttl: 900s
-14:02:12  HSET    user:42               field=last_seen
-14:02:12  DEL     session:abc123
+14:02:11  SET      session:abc123    "ana@example.com|role=admin"
+14:02:11  EXPIRE   session:abc123    "900"
+14:02:12  HSET     user:42           {last_seen: 1715695332, logins: 37}
+14:02:12  INCRBY   metrics:requests  "148021"
+14:02:13  RPUSH    queue:emails      [welcome:42, digest:17, receipt:1007]
+14:02:13  RENAME   lock:job:42 → lock:job:42:done
+14:02:14  DEL      cache:homepage
+14:02:15  EXPIRED  session:abc123
+14:02:15  EVICTED  cache:product:884
+14:02:16  INCRBY   metrics:requests  9,213 events (collapsed)
 ```
+
+Writes (SET / HSET / INCRBY / RPUSH) are green, EXPIRE blue, RENAME cyan,
+DEL red, EXPIRED / EVICTED magenta; timestamps and collapse notices are
+dimmed. (The colored image above is generated straight from redistail's own
+renderer — see `scripts/gen_demo_svg.py`.)
+
+</details>
 
 > Why redistail? `redis-cli MONITOR` floods you with every command, including
 > reads. `redistail` shows you *changes* — what your app, your background
