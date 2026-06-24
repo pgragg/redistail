@@ -12,7 +12,6 @@ from redistail.collapse import Collapser
 from redistail.connection import ConnectionError_, validate_connection
 from redistail.format import Renderer
 from redistail.options import (
-    DEFAULT_OPS,
     Settings,
     parse_csv_tuple,
     parse_db_list,
